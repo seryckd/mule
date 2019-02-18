@@ -339,9 +339,12 @@ public class MultiConsumerJmsMessageReceiver extends AbstractMessageReceiver
             {
                 try
                 {
-                    consumer.close();
-                    consumer.getMessageListener();
-                    consumer.setMessageListener(null);
+                    // This is done to recycle the consumer
+                    // by default
+                    if (jmsConnector.mustRecycleReceivers())
+                    {
+                        consumer.setMessageListener(null);
+                    }
                     started = false;
                 }
                 catch (JMSException e)

@@ -535,10 +535,16 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
 
             if (receiverReportedExceptionCount.incrementAndGet() >= expectedReceiverCount)
             {
+                prepareConnectorForConnectionException();
                 receiverReportedExceptionCount.set(0);
                 muleContext.getExceptionListener().handleException(new ConnectException(jmsException, this));
             }
         }
+    }
+
+    protected void prepareConnectorForConnectionException()
+    {
+        // Override if necessary
     }
 
     @Override
@@ -1489,5 +1495,10 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
     public void scheduleTimeoutTask(TimerTask timerTask, int timeout)
     {
         responseTimeoutTimer.schedule(timerTask, timeout);
+    }
+
+    public boolean mustRecycleReceivers()
+    {
+        return true;
     }
 }
