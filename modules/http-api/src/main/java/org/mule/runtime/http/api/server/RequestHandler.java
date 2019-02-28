@@ -27,6 +27,18 @@ public interface RequestHandler {
   void handleRequest(HttpRequestContext requestContext, HttpResponseReadyCallback responseCallback);
 
   /**
+   * Called to handle an incoming HTTP request and optionally push resources.
+   *
+   * @param requestContext HTTP request content
+   * @param responseCallback callback to call when the response content is ready.
+   * @param pushHandler HTTP server push handler
+   * @since 4.2
+   */
+  default void handleRequest(HttpRequestContext requestContext, HttpResponseReadyCallback responseCallback, PushHandler pushHandler) {
+    handleRequest(requestContext, responseCallback, resource -> {});
+  }
+
+  /**
    * @return the classloader for the artifact that owns this {@link RequestHandler}.
    *
    * @since 4.1.5
