@@ -34,8 +34,10 @@ public interface RequestHandler {
    * @param pushHandler HTTP server push handler
    * @since 4.2
    */
-  default void handleRequest(HttpRequestContext requestContext, HttpResponseReadyCallback responseCallback, PushHandler pushHandler) {
-    handleRequest(requestContext, responseCallback, resource -> {});
+  default void handleRequest(HttpRequestContext requestContext, HttpResponseReadyCallback responseCallback,
+                             PushHandler pushHandler) {
+    handleRequest(requestContext, responseCallback, resource -> {
+    });
   }
 
   /**
