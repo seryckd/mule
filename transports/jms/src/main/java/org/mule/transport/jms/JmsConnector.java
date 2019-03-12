@@ -861,6 +861,12 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
      */
     public void close(Session session) throws JMSException
     {
+        if (this.getConnectionFactory() instanceof ReconnectInterceptorCachingConnectionFactory &&
+            ((ReconnectInterceptorCachingConnectionFactory) this.getConnectionFactory()).isReconnecting())
+        {
+            // Since reconnection is already being attempted, avoid doing two session closures simultaneously
+            return;
+        }
         if (session != null)
         {
             if (logger.isDebugEnabled())

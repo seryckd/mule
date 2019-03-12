@@ -28,6 +28,11 @@ public class ReconnectInterceptorCachingConnectionFactory extends CachingConnect
     private final ConnectionFactory realTargetConnectionFactory;
     private AtomicBoolean isReconnecting = new AtomicBoolean();
 
+    public boolean isReconnecting()
+    {
+        return isReconnecting.get();
+    }
+
     public ReconnectInterceptorCachingConnectionFactory(ConnectionFactory targetConnectionFactory)
     {
         super(targetConnectionFactory);
@@ -47,6 +52,7 @@ public class ReconnectInterceptorCachingConnectionFactory extends CachingConnect
 
     @Override
     public Connection createConnection() throws JMSException
+
     {
         isReconnecting.set(false);
         return getConnectionProxy(super.createConnection());
