@@ -357,6 +357,7 @@ public class MultiConsumerJmsMessageReceiver extends AbstractMessageReceiver
             {
                 try
                 {
+                    consumer.close();
                     consumer.getMessageListener();
                     consumer.setMessageListener(null);
                     started = false;
