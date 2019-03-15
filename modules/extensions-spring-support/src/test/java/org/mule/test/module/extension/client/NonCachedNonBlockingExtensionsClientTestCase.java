@@ -9,7 +9,6 @@ package org.mule.test.module.extension.client;
 import static java.lang.System.setProperty;
 import static org.mule.runtime.module.extension.internal.runtime.client.DefaultExtensionsClient.MULE_EXTENSIONS_CLIENT_CACHE_IS_DISABLED;
 
-
 import org.junit.BeforeClass;
 
 public class NonCachedNonBlockingExtensionsClientTestCase extends NonBlockingExtensionsClientTestCase {
