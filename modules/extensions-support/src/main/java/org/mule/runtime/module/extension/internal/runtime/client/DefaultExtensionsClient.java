@@ -6,6 +6,7 @@
  */
 package org.mule.runtime.module.extension.internal.runtime.client;
 
+import static org.mule.runtime.api.util.MuleSystemProperties.SYSTEM_PROPERTY_PREFIX;
 import static reactor.core.publisher.Mono.just;
 
 import org.mule.runtime.api.exception.MuleException;
@@ -38,6 +39,8 @@ import javax.inject.Inject;
  * @since 4.0
  */
 public final class DefaultExtensionsClient implements ExtensionsClient, Initialisable {
+
+  public static final String MULE_EXTENSIONS_CLIENT_CACHE_IS_DISABLED = SYSTEM_PROPERTY_PREFIX + "extensionsClient.disableCache";
 
   @Inject
   private OperationMessageProcessorStrategyFactory operationMessageProcessorStrategyFactory;

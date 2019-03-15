@@ -7,7 +7,7 @@
 package org.mule.runtime.module.extension.internal.runtime.client.strategy;
 
 import static java.lang.Boolean.parseBoolean;
-import static org.mule.runtime.api.util.MuleSystemProperties.MULE_EXTENSIONS_CLIENT_CACHE_IS_DISABLED;
+import static org.mule.runtime.module.extension.internal.runtime.client.DefaultExtensionsClient.MULE_EXTENSIONS_CLIENT_CACHE_IS_DISABLED;
 import static org.mule.runtime.module.extension.internal.runtime.client.strategy.OperationMessageProcessorUtils.disposeProcessor;
 
 import org.mule.runtime.api.artifact.Registry;
