@@ -203,6 +203,8 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
         ExceptionHelper.registerExceptionReader(new JmsExceptionReader());
     }
 
+    protected boolean recycleSubreceivers;
+
     public JmsConnector(MuleContext context)
     {
         super(context);
@@ -217,6 +219,9 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
     @Override
     protected void doInitialise() throws InitialisationException
     {
+
+        configureRecycleSubreceiversOnIbmMqCase();
+
         responseTimeoutTimer = new Timer(ThreadNameHelper.getPrefix(muleContext) + name + ".ResponseTimeoutTimer");
         if (jmsSupport == null)
         {
@@ -261,6 +266,21 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
             throw new InitialisationException(nex, this);
         }
 
+    }
+
+    private void configureRecycleSubreceiversOnIbmMqCase()
+    {
+        boolean containsSpringDefinedMqConnectionFactory = false;
+        for (ConnectionFactory bean : this.muleContext.getRegistry()
+                .lookupObjects(ConnectionFactory.class))
+        {
+            if (bean.getClass().getName().contains("MQ"))
+            {
+                containsSpringDefinedMqConnectionFactory = true;
+                break;
+            }
+        }
+        recycleSubreceivers = !containsSpringDefinedMqConnectionFactory;
     }
 
     /**
@@ -436,6 +456,7 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
             // apply connection factory properties
             BeanUtils.populateWithoutFail(connectionFactory, connectionFactoryProperties, true);
         }
+
 
         connectionFactory = connectionFactoryDecorator.decorate(connectionFactory, this, muleContext);
 
@@ -1499,6 +1520,6 @@ public class JmsConnector extends AbstractConnector implements ExceptionListener
 
     public boolean mustRecycleReceivers()
     {
-        return true;
+        return recycleSubreceivers;
     }
 }
