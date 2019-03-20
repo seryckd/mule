@@ -79,10 +79,6 @@ public class Jms11Support implements JmsSupport
                                  int ackMode,
                                  boolean noLocal) throws JMSException
     {
-        if (System.getProperty("mule.jms.alwaysTransacted") != null)
-        {
-            transacted = true;
-        }
         return connection.createSession(transacted, (transacted ? Session.SESSION_TRANSACTED : ackMode));
     }
 
