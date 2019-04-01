@@ -19,6 +19,7 @@ import static org.mule.runtime.extension.api.client.DefaultOperationParameters.b
 import static org.mule.test.heisenberg.extension.HeisenbergExtension.HEISENBERG;
 import static org.mule.test.heisenberg.extension.HeisenbergNotificationAction.KNOCKED_DOOR;
 import static org.mule.test.heisenberg.extension.HeisenbergNotificationAction.KNOCKING_DOOR;
+
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.Disposable;
 import org.mule.runtime.api.metadata.DataType;
@@ -68,17 +69,17 @@ import org.mule.test.heisenberg.extension.model.Investment;
 import org.mule.test.heisenberg.extension.model.KillParameters;
 import org.mule.test.heisenberg.extension.model.KnockeableDoor;
 import org.mule.test.heisenberg.extension.model.PersonalInfo;
+import org.mule.test.heisenberg.extension.model.PurificationAttributes;
 import org.mule.test.heisenberg.extension.model.RecursiveChainA;
 import org.mule.test.heisenberg.extension.model.RecursiveChainB;
 import org.mule.test.heisenberg.extension.model.RecursivePojo;
 import org.mule.test.heisenberg.extension.model.SaleInfo;
 import org.mule.test.heisenberg.extension.model.SimpleKnockeableDoor;
 import org.mule.test.heisenberg.extension.model.Weapon;
+import org.mule.test.heisenberg.extension.model.drugs.Meta;
 import org.mule.test.heisenberg.extension.model.types.IntegerAttributes;
 import org.mule.test.heisenberg.extension.stereotypes.EmpireStereotype;
 import org.mule.test.heisenberg.extension.stereotypes.KillingStereotype;
-
-import com.google.common.collect.ImmutableMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -92,6 +93,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 
+import com.google.common.collect.ImmutableMap;
 import javax.inject.Inject;
 
 
@@ -549,4 +551,16 @@ public class HeisenbergOperations implements Disposable {
         .put("serializable", serializable)
         .build();
   }
+
+  public void purify(@Optional String requester, @ParameterGroup(name = "Meta") Meta meta,
+                     @Content String request, CompletionCallback<Integer, PurificationAttributes> callback) {
+    Integer newPurity = 50 + meta.getPurity() / 2;
+    Integer cost = newPurity * 1000;
+    String chemist = "Pinkman";
+    callback.success(Result.<Integer, PurificationAttributes>builder()
+        .output(newPurity)
+        .attributes(new PurificationAttributes(cost, chemist, requester))
+        .build());
+  }
+
 }
