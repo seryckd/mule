@@ -8,6 +8,8 @@ package org.mule.test.heisenberg.extension.model;
 
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 
+import java.util.Map;
+
 public class PurificationAttributes {
 
   @Parameter
@@ -19,13 +21,17 @@ public class PurificationAttributes {
   @Parameter
   private final String requester;
 
+  @Parameter
+  private final Map<String, String> properties;
+
   public PurificationAttributes() {
-    this(null, null, null);
+    this(null, null, null, null);
   }
 
-  public PurificationAttributes(Integer cost, String chemist, String requester) {
+  public PurificationAttributes(Integer cost, String chemist, String requester, Map<String, String> properties) {
     this.cost = cost;
     this.chemist = chemist;
     this.requester = requester;
+    this.properties = properties;
   }
 }
