@@ -23,7 +23,7 @@ import static org.mule.runtime.module.extension.api.loader.AbstractJavaExtension
 import static org.mule.runtime.module.extension.internal.capability.xml.DefaultExtensionSchemaGeneratorTestCase.SchemaGeneratorTestUnit.newTestUnit;
 import static org.mule.runtime.module.extension.internal.resources.BaseExtensionResourcesGeneratorAnnotationProcessor.COMPILATION_MODE;
 import static org.mule.test.module.extension.internal.util.ExtensionsTestUtils.compareXML;
-
+import org.mule.extension.test.extension.reconnection.ReconnectionExtension;
 import org.mule.runtime.api.dsl.DslResolvingContext;
 import org.mule.runtime.api.meta.model.ExtensionModel;
 import org.mule.runtime.api.meta.type.TypeCatalog;
@@ -34,10 +34,29 @@ import org.mule.runtime.extension.api.loader.ExtensionModelLoader;
 import org.mule.runtime.module.extension.api.loader.java.DefaultJavaExtensionModelLoader;
 import org.mule.runtime.module.extension.internal.capability.xml.schema.DefaultExtensionSchemaGenerator;
 import org.mule.runtime.module.extension.internal.loader.enricher.JavaXmlDeclarationEnricher;
+import org.mule.runtime.module.extension.internal.runtime.connectivity.basic.GlobalInnerPojoConnector;
+import org.mule.runtime.module.extension.internal.runtime.connectivity.basic.GlobalPojoConnector;
+import org.mule.runtime.module.extension.internal.runtime.connectivity.basic.ListConnector;
+import org.mule.runtime.module.extension.internal.runtime.connectivity.basic.MapConnector;
+import org.mule.runtime.module.extension.internal.runtime.connectivity.basic.StringListConnector;
+import org.mule.runtime.module.extension.internal.runtime.connectivity.basic.TestConnector;
 import org.mule.runtime.module.extension.soap.api.loader.SoapExtensionModelLoader;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
+import org.mule.test.function.extension.WeaveFunctionExtension;
 import org.mule.test.heisenberg.extension.HeisenbergExtension;
+import org.mule.test.marvel.MarvelExtension;
+import org.mule.test.metadata.extension.MetadataExtension;
+import org.mule.test.oauth.TestOAuthExtension;
+import org.mule.test.petstore.extension.PetStoreConnector;
+import org.mule.test.ram.RickAndMortyExtension;
+import org.mule.test.soap.extension.FootballSoapExtension;
+import org.mule.test.substitutiongroup.extension.SubstitutionGroupExtension;
+import org.mule.test.subtypes.extension.SubTypesMappingConnector;
+import org.mule.test.transactional.TransactionalExtension;
+import org.mule.test.typed.value.extension.extension.TypedValueExtension;
+import org.mule.test.values.extension.ValuesExtension;
+import org.mule.test.vegan.extension.VeganExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,8 +101,27 @@ public class DefaultExtensionSchemaGeneratorTestCase extends AbstractMuleTestCas
         .thenReturn(asList(new JavaXmlDeclarationEnricher()));
 
     final List<SchemaGeneratorTestUnit> extensions;
-    extensions = asList(
-                        newTestUnit(javaLoader, HeisenbergExtension.class, "heisenberg.xsd"));
+    extensions = asList(newTestUnit(javaLoader, MapConnector.class, "map.xsd"),
+                        newTestUnit(javaLoader, ListConnector.class, "list.xsd"),
+                        newTestUnit(javaLoader, TestConnector.class, "basic.xsd"),
+                        newTestUnit(javaLoader, StringListConnector.class, "string-list.xsd"),
+                        newTestUnit(javaLoader, GlobalPojoConnector.class, "global-pojo.xsd"),
+                        newTestUnit(javaLoader, GlobalInnerPojoConnector.class, "global-inner-pojo.xsd"),
+                        newTestUnit(javaLoader, VeganExtension.class, "vegan.xsd"),
+                        newTestUnit(javaLoader, PetStoreConnector.class, "petstore.xsd"),
+                        newTestUnit(javaLoader, MetadataExtension.class, "metadata.xsd"),
+                        newTestUnit(javaLoader, HeisenbergExtension.class, "heisenberg.xsd"),
+                        newTestUnit(javaLoader, SubstitutionGroupExtension.class, "substitutiongroup.xsd"),
+                        newTestUnit(javaLoader, TransactionalExtension.class, "tx-ext.xsd"),
+                        newTestUnit(javaLoader, SubTypesMappingConnector.class, "subtypes.xsd"),
+                        newTestUnit(javaLoader, MarvelExtension.class, "marvel.xsd"),
+                        newTestUnit(soapLoader, FootballSoapExtension.class, "soap.xsd"),
+                        newTestUnit(soapLoader, RickAndMortyExtension.class, "ram.xsd"),
+                        newTestUnit(javaLoader, TypedValueExtension.class, "typed-value.xsd"),
+                        newTestUnit(javaLoader, TestOAuthExtension.class, "test-oauth.xsd"),
+                        newTestUnit(javaLoader, WeaveFunctionExtension.class, "test-fn.xsd"),
+                        newTestUnit(javaLoader, ValuesExtension.class, "values.xsd"),
+                        newTestUnit(javaLoader, ReconnectionExtension.class, "reconnection-extension.xsd"));
 
     BiFunction<Class<?>, ExtensionModelLoader, ExtensionModel> createExtensionModel = (extension, loader) -> {
       ExtensionModel model = loadExtension(extension, loader);
@@ -110,7 +148,7 @@ public class DefaultExtensionSchemaGeneratorTestCase extends AbstractMuleTestCas
    * @return whether or not the "expected" test files should be updated when comparison fails
    */
   private boolean shouldUpdateExpectedFilesOnError() {
-    return true;
+    return false;
   }
 
   @Before
