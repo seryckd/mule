@@ -7,22 +7,26 @@
 
 package org.mule.test.heisenberg.extension.model.drugs;
 
-import static java.util.Collections.emptyMap;
-
-import org.mule.runtime.extension.api.annotation.param.Content;
-import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 
 import java.util.Map;
 
-public class PowerfulMeta extends Meta {
+public class DrugB {
 
   @Parameter
-  @Optional
-  @Content
-  private Map<String, String> properties = emptyMap();
+  Map<String, String> properties;
+
+  public DrugB() {}
+
+  public DrugB(Map<String, String> properties) {
+    this.properties = properties;
+  }
 
   public Map<String, String> getProperties() {
     return properties;
+  }
+
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
   }
 }

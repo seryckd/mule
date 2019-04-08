@@ -69,14 +69,14 @@ import org.mule.test.heisenberg.extension.model.Investment;
 import org.mule.test.heisenberg.extension.model.KillParameters;
 import org.mule.test.heisenberg.extension.model.KnockeableDoor;
 import org.mule.test.heisenberg.extension.model.PersonalInfo;
-import org.mule.test.heisenberg.extension.model.PurificationAttributes;
 import org.mule.test.heisenberg.extension.model.RecursiveChainA;
 import org.mule.test.heisenberg.extension.model.RecursiveChainB;
 import org.mule.test.heisenberg.extension.model.RecursivePojo;
 import org.mule.test.heisenberg.extension.model.SaleInfo;
 import org.mule.test.heisenberg.extension.model.SimpleKnockeableDoor;
 import org.mule.test.heisenberg.extension.model.Weapon;
-import org.mule.test.heisenberg.extension.model.drugs.PowerfulMeta;
+import org.mule.test.heisenberg.extension.model.drugs.DrugB;
+import org.mule.test.heisenberg.extension.model.drugs.DrugX;
 import org.mule.test.heisenberg.extension.model.types.IntegerAttributes;
 import org.mule.test.heisenberg.extension.stereotypes.EmpireStereotype;
 import org.mule.test.heisenberg.extension.stereotypes.KillingStereotype;
@@ -552,16 +552,12 @@ public class HeisenbergOperations implements Disposable {
         .build();
   }
 
-  public void purify(@Optional String requester, @ParameterGroup(name = "Powerful Meta") PowerfulMeta meta,
-                     @Content(primary = true) String request, CompletionCallback<Integer, PurificationAttributes> callback) {
-    Integer newPurity = 50 + meta.getPurity() / 2;
-    Integer cost = newPurity * 1000;
-    String chemist = "Pinkman";
-    Map<String, String> properties = meta.getProperties();
-    callback.success(Result.<Integer, PurificationAttributes>builder()
-        .output(newPurity)
-        .attributes(new PurificationAttributes(cost, chemist, requester, properties))
-        .build());
+  public Map<String, String> getPropertiesB(@ParameterGroup(name = "drug") DrugX drugX) {
+    return drugX.getProperties();
+  }
+
+  public Map<String, String> getPropertiesX(DrugB drugB) {
+    return drugB.getProperties();
   }
 
 }

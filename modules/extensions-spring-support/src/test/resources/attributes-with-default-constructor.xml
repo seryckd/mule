@@ -1,5 +1,4 @@
-<?xml v
-        ersion="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:heisenberg="http://www.mulesoft.org/schema/mule/heisenberg"
       xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -7,13 +6,9 @@
                http://www.mulesoft.org/schema/mule/heisenberg http://www.mulesoft.org/schema/mule/heisenberg/current/mule-heisenberg.xsd">
 
     <flow name="purify-meta">
-        <heisenberg:purify requester="Krazy-8" purity="88">
-            <heisenberg:request>#['Please Pinkman, purify this for me.']</heisenberg:request>
-            <heisenberg:properties>
-               #[ { color : "really blue" , provider : "Los Pollos Hermanos" }]
-            </heisenberg:properties>
-        </heisenberg:purify>
+        <heisenberg:get-properties-b>
+            <heisenberg:properties>#[ propertyOne : "propertyOne", propertyTwo : "propertyTwo" ]</heisenberg:properties>
+        </heisenberg:get-properties-b>
     </flow>
-
 
 </mule>
