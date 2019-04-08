@@ -67,7 +67,7 @@ public final class ReactiveOperationExecutionWrapper<M extends ComponentModel>
         sink.error(wrapFatal(t));
       }
     });
-
+  }
 
   @Override
   public void initialise() throws InitialisationException {
