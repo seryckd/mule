@@ -19,9 +19,8 @@ public class AttributesWithDefaultConstructorTestCase extends AbstractExtensionF
   }
 
   @Test
-  public void listenSuccessfulFlow() throws Exception {
-    Message message = flowRunner("purify-meta").run().getMessage();
-    System.out.println("hola");
+  public void getPropertiesTestCase() throws Exception {
+    Message message = flowRunner("get-properties").run().getMessage();
   }
 
 }

@@ -75,7 +75,7 @@ import org.mule.test.heisenberg.extension.model.RecursivePojo;
 import org.mule.test.heisenberg.extension.model.SaleInfo;
 import org.mule.test.heisenberg.extension.model.SimpleKnockeableDoor;
 import org.mule.test.heisenberg.extension.model.Weapon;
-import org.mule.test.heisenberg.extension.model.drugs.DrugB;
+import org.mule.test.heisenberg.extension.model.drugs.DrugContainer;
 import org.mule.test.heisenberg.extension.model.drugs.DrugX;
 import org.mule.test.heisenberg.extension.model.types.IntegerAttributes;
 import org.mule.test.heisenberg.extension.stereotypes.EmpireStereotype;
@@ -552,12 +552,12 @@ public class HeisenbergOperations implements Disposable {
         .build();
   }
 
-  public Map<String, String> getPropertiesB(@ParameterGroup(name = "drug") DrugX drugX) {
+  public Map<String, String> getProperties(@ParameterGroup(name = "drug") DrugX drugX) {
     return drugX.getProperties();
   }
 
-  public Map<String, String> getPropertiesX(DrugB drugB) {
-    return drugB.getProperties();
+  public Map<String, String> getPropertiesB(@ParameterGroup(name = "drugContainer") DrugContainer drugContainer) {
+    return drugContainer.getDrugB().getProperties();
   }
 
 }

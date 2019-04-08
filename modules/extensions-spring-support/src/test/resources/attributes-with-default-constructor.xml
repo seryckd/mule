@@ -5,10 +5,10 @@
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
                http://www.mulesoft.org/schema/mule/heisenberg http://www.mulesoft.org/schema/mule/heisenberg/current/mule-heisenberg.xsd">
 
-    <flow name="purify-meta">
-        <heisenberg:get-properties-b>
-            <heisenberg:properties>#[ propertyOne : "propertyOne", propertyTwo : "propertyTwo" ]</heisenberg:properties>
-        </heisenberg:get-properties-b>
+    <flow name="get-properties">
+        <heisenberg:get-properties>
+            <heisenberg:properties>#[ { propertyOne : "propertyOne" , propertyTwo : "propertyTwo" } ]</heisenberg:properties>
+        </heisenberg:get-properties>
     </flow>
 
 </mule>
