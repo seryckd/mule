@@ -58,6 +58,7 @@ import static org.mule.tck.probe.PollingProber.DEFAULT_POLLING_INTERVAL;
 import static org.mule.tck.util.MuleContextUtils.eventBuilder;
 import static org.mule.test.allure.AllureConstants.ExpressionLanguageFeature.EXPRESSION_LANGUAGE;
 import static org.mule.test.allure.AllureConstants.ExpressionLanguageFeature.ExpressionLanguageStory.SUPPORT_DW;
+
 import org.mule.runtime.api.component.Component;
 import org.mule.runtime.api.component.location.ComponentLocation;
 import org.mule.runtime.api.component.location.Location;
@@ -87,9 +88,6 @@ import org.mule.runtime.core.internal.message.InternalMessage;
 import org.mule.tck.probe.JUnitLambdaProbe;
 import org.mule.tck.probe.PollingProber;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
 import java.io.IOException;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
@@ -101,13 +99,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 
-import io.qameta.allure.Description;
-import io.qameta.allure.Feature;
-import io.qameta.allure.Story;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 
 @Feature(EXPRESSION_LANGUAGE)
 @Story(SUPPORT_DW)
@@ -118,9 +120,9 @@ public class DataWeaveExpressionLanguageAdaptorTestCase extends AbstractWeaveExp
   @Rule
   public ExpectedException expectedEx = none();
 
-  private ExpressionLanguage genericExpressionLanguage = spy(ExpressionLanguage.class);
+  private final ExpressionLanguage genericExpressionLanguage = spy(ExpressionLanguage.class);
   private DefaultExpressionLanguageFactoryService genericExpressionLanguageService;
-  private BindingContext bindingContext = NULL_BINDING_CONTEXT;
+  private final BindingContext bindingContext = NULL_BINDING_CONTEXT;
 
   @Before
   public void before() {
@@ -165,6 +167,21 @@ public class DataWeaveExpressionLanguageAdaptorTestCase extends AbstractWeaveExp
     assertThat(payload.next().getValue().toString(), is("2"));
     assertThat(payload.hasNext(), is(true));
     assertThat(payload.next().getValue().toString(), is("3"));
+    assertThat(payload.hasNext(), is(false));
+  }
+
+  @Test
+  public void splitByJsonKeepsEncoding() throws Exception {
+    CoreEvent jsonMessage =
+        eventBuilder(muleContext).message(Message.builder().value("[\"1\",\"ñañá\",\"3\"]").mediaType(APPLICATION_JSON).build())
+            .build();
+    Iterator<TypedValue<?>> payload = expressionLanguage.split("payload", jsonMessage, BindingContext.builder().build());
+    assertThat(payload.hasNext(), is(true));
+    assertThat(payload.next().getValue().toString(), is("\"1\""));
+    assertThat(payload.hasNext(), is(true));
+    assertThat(payload.next().getValue().toString(), is("\"ñañá\""));
+    assertThat(payload.hasNext(), is(true));
+    assertThat(payload.next().getValue().toString(), is("\"3\""));
     assertThat(payload.hasNext(), is(false));
   }
 
