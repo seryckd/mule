@@ -15,7 +15,6 @@ import static org.mule.runtime.core.api.lifecycle.LifecycleUtils.initialiseIfNee
 import static org.mule.runtime.core.api.util.ClassUtils.isInstance;
 import static org.mule.runtime.core.internal.el.DefaultExpressionManager.hasDwExpression;
 import static org.mule.runtime.core.internal.el.DefaultExpressionManager.hasMelExpression;
-
 import org.mule.runtime.api.artifact.Registry;
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.Initialisable;
@@ -23,13 +22,14 @@ import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.el.ExtendedExpressionManager;
+import org.mule.runtime.core.api.event.CoreEvent;
 import org.mule.runtime.core.api.util.func.Once;
 import org.mule.runtime.core.api.util.func.Once.RunOnce;
 import org.mule.runtime.core.privileged.util.AttributeEvaluator;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A {@link ValueResolver} which evaluates a MEL expressions
@@ -41,6 +41,11 @@ import javax.inject.Inject;
  * @since 4.0
  */
 public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<T>, Initialisable {
+
+  private static final String PAYLOAD_EXPRESSION = "#[payload]";
+  private static final String ATTRIBUTES_EXPRESSION = "#[attributes]";
+  private static AttributeEvaluator PAYLOAD_EVALUATOR = new PayloadEvaluator();
+  private static AttributeEvaluator ATTRIBUTES_EVALUATOR = new MessageAttributesEvaluator();
 
   @Inject
   private ExtendedExpressionManager extendedExpressionManager;
@@ -62,7 +67,7 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
   ExpressionValueResolver(String expression, DataType expectedDataType) {
     checkArgument(!StringUtils.isBlank(expression), "Expression cannot be blank or null");
     this.expression = expression;
-    this.evaluator = new AttributeEvaluator(expression, expectedDataType);
+    this.evaluator = buildAttributeEvaluator(expression, expectedDataType);
   }
 
   public ExpressionValueResolver(String expression, DataType expectedDataType, Boolean melDefault, Boolean melAvailable) {
@@ -74,7 +79,7 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
   public ExpressionValueResolver(String expression) {
     checkArgument(!StringUtils.isBlank(expression), "Expression cannot be blank or null");
     this.expression = expression;
-    this.evaluator = new AttributeEvaluator(expression);
+    this.evaluator = buildAttributeEvaluator(expression);
   }
 
   void setExtendedExpressionManager(ExtendedExpressionManager extendedExpressionManager) {
@@ -148,5 +153,57 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
 
   private AttributeEvaluator getEvaluator() {
     return evaluator;
+  }
+
+  private AttributeEvaluator buildAttributeEvaluator(String expression) {
+    return buildAttributeEvaluator(expression, null);
+  }
+
+  private AttributeEvaluator buildAttributeEvaluator(String expression, DataType expectedDataType) {
+    if (PAYLOAD_EXPRESSION.equals(expression)) {
+      return PAYLOAD_EVALUATOR;
+    } else if (ATTRIBUTES_EXPRESSION.equals(expression)) {
+      return ATTRIBUTES_EVALUATOR;
+    }
+
+    return new AttributeEvaluator(expression, expectedDataType);
+  }
+
+  private static abstract class OptimizedEvaluator extends AttributeEvaluator {
+
+    private OptimizedEvaluator() {
+      super(null);
+    }
+
+    @Override
+    public AttributeEvaluator initialize(ExtendedExpressionManager expressionManager) {
+      return this;
+    }
+  }
+
+  private static class PayloadEvaluator extends OptimizedEvaluator {
+
+    @Override
+    public <T> TypedValue<T> resolveTypedValue(CoreEvent event) {
+      return event.getMessage().getPayload();
+    }
+
+    @Override
+    public <T> T resolveValue(CoreEvent event) {
+      return (T) event.getMessage().getPayload().getValue();
+    }
+  }
+
+  private static class MessageAttributesEvaluator extends OptimizedEvaluator {
+
+    @Override
+    public <T> TypedValue<T> resolveTypedValue(CoreEvent event) {
+      return event.getMessage().getAttributes();
+    }
+
+    @Override
+    public <T> T resolveValue(CoreEvent event) {
+      return (T) event.getMessage().getAttributes().getValue();
+    }
   }
 }

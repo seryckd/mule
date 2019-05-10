@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * <p>
  * It can be extended to support other cases too.
  */
-public final class AttributeEvaluator {
+public class AttributeEvaluator {
 
   private static final Pattern SINGLE_EXPRESSION_REGEX_PATTERN = compile("^#\\[(?:(?!#\\[).)*]$", DOTALL);
   private static final Pattern SANITIZE_PATTERN = compile("\r|\t");
