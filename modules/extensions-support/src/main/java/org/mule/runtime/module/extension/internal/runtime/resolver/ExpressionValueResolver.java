@@ -22,10 +22,11 @@ import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.el.ExtendedExpressionManager;
-import org.mule.runtime.core.api.event.CoreEvent;
 import org.mule.runtime.core.api.util.func.Once;
 import org.mule.runtime.core.api.util.func.Once.RunOnce;
 import org.mule.runtime.core.privileged.util.AttributeEvaluator;
+
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -44,8 +45,8 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
 
   private static final String PAYLOAD_EXPRESSION = "#[payload]";
   private static final String ATTRIBUTES_EXPRESSION = "#[attributes]";
-  private static AttributeEvaluator PAYLOAD_EVALUATOR = new PayloadEvaluator();
-  private static AttributeEvaluator ATTRIBUTES_EVALUATOR = new MessageAttributesEvaluator();
+  private static final ResolverFunction PAYLOAD_FUNCTION = new PayloadResolverFunction();
+  private static final ResolverFunction ATTRIBUTES_FUNCTION = new AttributesResolverFunction();
 
   @Inject
   private ExtendedExpressionManager extendedExpressionManager;
@@ -55,6 +56,7 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
 
   final AttributeEvaluator evaluator;
   private final String expression;
+  private Function<ValueResolvingContext, TypedValue> resolverFunction;
 
   private final RunOnce evaluatorInitialiser = Once.of(() -> {
     initialiseIfNeeded(extendedExpressionManager);
@@ -67,7 +69,7 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
   ExpressionValueResolver(String expression, DataType expectedDataType) {
     checkArgument(!StringUtils.isBlank(expression), "Expression cannot be blank or null");
     this.expression = expression;
-    this.evaluator = buildAttributeEvaluator(expression, expectedDataType);
+    this.evaluator = new AttributeEvaluator(expression, expectedDataType);
   }
 
   public ExpressionValueResolver(String expression, DataType expectedDataType, Boolean melDefault, Boolean melAvailable) {
@@ -79,7 +81,8 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
   public ExpressionValueResolver(String expression) {
     checkArgument(!StringUtils.isBlank(expression), "Expression cannot be blank or null");
     this.expression = expression;
-    this.evaluator = buildAttributeEvaluator(expression);
+    this.evaluator = new AttributeEvaluator(expression);
+
   }
 
   void setExtendedExpressionManager(ExtendedExpressionManager extendedExpressionManager) {
@@ -95,6 +98,24 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
 
     if (melAvailable == null) {
       melAvailable = registry.lookupByName(COMPATIBILITY_PLUGIN_INSTALLED).isPresent();
+    }
+
+    resolverFunction = getResolverFunction(expression);
+  }
+
+  private ResolverFunction getResolverFunction(String expression) {
+    if (PAYLOAD_EXPRESSION.equals(expression)) {
+      return PAYLOAD_FUNCTION;
+    } else if (ATTRIBUTES_EXPRESSION.equals(expression)) {
+      return ATTRIBUTES_FUNCTION;
+    } else {
+      if (isMelAvailable() &&
+          (!hasDwExpression(expression) && !hasMelExpression(expression) && melDefault)
+          || hasMelExpression(expression)) {
+        return new MELResolverFunction(evaluator);
+      } else {
+        return new DWResolverFunction(evaluator);
+      }
     }
   }
 
@@ -112,15 +133,7 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
   }
 
   protected <V> TypedValue<V> resolveTypedValue(ValueResolvingContext context) {
-    if (context.getSession() == null
-        || (isMelAvailable()
-            && (!hasDwExpression(expression) && !hasMelExpression(expression) && melDefault)
-            || hasMelExpression(expression))) {
-      // MEL requires an actual event, so in this case we may not optimize by using a session
-      return evaluator.resolveTypedValue(context.getEvent());
-    } else {
-      return evaluator.resolveTypedValue(context.getSession());
-    }
+    return resolverFunction.apply(context);
   }
 
   void initEvaluator() {
@@ -155,55 +168,59 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
     return evaluator;
   }
 
-  private AttributeEvaluator buildAttributeEvaluator(String expression) {
-    return buildAttributeEvaluator(expression, null);
+  private interface ResolverFunction extends Function<ValueResolvingContext, TypedValue> {
+
   }
 
-  private AttributeEvaluator buildAttributeEvaluator(String expression, DataType expectedDataType) {
-    if (PAYLOAD_EXPRESSION.equals(expression)) {
-      return PAYLOAD_EVALUATOR;
-    } else if (ATTRIBUTES_EXPRESSION.equals(expression)) {
-      return ATTRIBUTES_EVALUATOR;
-    }
 
-    return new AttributeEvaluator(expression, expectedDataType);
-  }
-
-  private static abstract class OptimizedEvaluator extends AttributeEvaluator {
-
-    private OptimizedEvaluator() {
-      super(null);
-    }
+  private static class PayloadResolverFunction implements ResolverFunction {
 
     @Override
-    public AttributeEvaluator initialize(ExtendedExpressionManager expressionManager) {
-      return this;
+    public TypedValue apply(ValueResolvingContext valueResolvingContext) {
+      return valueResolvingContext.getEvent().getMessage().getPayload();
     }
   }
 
-  private static class PayloadEvaluator extends OptimizedEvaluator {
+
+  private static class AttributesResolverFunction implements ResolverFunction {
 
     @Override
-    public <T> TypedValue<T> resolveTypedValue(CoreEvent event) {
-      return event.getMessage().getPayload();
-    }
-
-    @Override
-    public <T> T resolveValue(CoreEvent event) {
-      return (T) event.getMessage().getPayload().getValue();
+    public TypedValue apply(ValueResolvingContext valueResolvingContext) {
+      return valueResolvingContext.getEvent().getMessage().getAttributes();
     }
   }
 
-  private static class MessageAttributesEvaluator extends OptimizedEvaluator {
 
-    @Override
-    public <T> TypedValue<T> resolveTypedValue(CoreEvent event) {
-      return event.getMessage().getAttributes();
+  private static class DWResolverFunction implements ResolverFunction {
+
+    private final AttributeEvaluator evaluator;
+
+    private DWResolverFunction(AttributeEvaluator evaluator) {
+      this.evaluator = evaluator;
     }
 
     @Override
-    public <T> T resolveValue(CoreEvent event) {
-      return (T) event.getMessage().getAttributes().getValue();
+    public TypedValue apply(ValueResolvingContext context) {
+      if (context.getSession() != null) {
+        return evaluator.resolveTypedValue(context.getSession());
+      } else {
+        return evaluator.resolveTypedValue(context.getEvent());
+      }
+    }
+  }
+
+
+  private static class MELResolverFunction implements ResolverFunction {
+
+    private final AttributeEvaluator evaluator;
+
+    private MELResolverFunction(AttributeEvaluator evaluator) {
+      this.evaluator = evaluator;
+    }
+
+    @Override
+    public TypedValue apply(ValueResolvingContext context) {
+      return evaluator.resolveTypedValue(context.getEvent());
     }
   }
 }
