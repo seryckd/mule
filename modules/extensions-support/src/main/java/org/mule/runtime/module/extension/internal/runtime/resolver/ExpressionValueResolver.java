@@ -104,19 +104,19 @@ public class ExpressionValueResolver<T> implements ExpressionBasedValueResolver<
   }
 
   private ResolverFunction getResolverFunction(String expression) {
-    if (PAYLOAD_EXPRESSION.equals(expression)) {
-      return PAYLOAD_FUNCTION;
-    } else if (ATTRIBUTES_EXPRESSION.equals(expression)) {
-      return ATTRIBUTES_FUNCTION;
+    //if (PAYLOAD_EXPRESSION.equals(expression)) {
+    //  return PAYLOAD_FUNCTION;
+    //} else if (ATTRIBUTES_EXPRESSION.equals(expression)) {
+    //  return ATTRIBUTES_FUNCTION;
+    //} else {
+    if (isMelAvailable() &&
+        (!hasDwExpression(expression) && !hasMelExpression(expression) && melDefault)
+        || hasMelExpression(expression)) {
+      return new MELResolverFunction(evaluator);
     } else {
-      if (isMelAvailable() &&
-          (!hasDwExpression(expression) && !hasMelExpression(expression) && melDefault)
-          || hasMelExpression(expression)) {
-        return new MELResolverFunction(evaluator);
-      } else {
-        return new DWResolverFunction(evaluator);
-      }
+      return new DWResolverFunction(evaluator);
     }
+    //}
   }
 
   @Override
